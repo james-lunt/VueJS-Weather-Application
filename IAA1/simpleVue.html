@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<div id="app-6">
+    <input v-model="city">
+    <button v-on:click="getWeather">Todays Weather</button>
+    {{weather}}
+    <button v-on:click="getForecast">Packing</button>
+    {{forecast}}
+</div>
+<script>
+    const API_KEY = "2851461c73782e2d4b65647c123fa135"
+    var app6 = new Vue({
+        el: '#app-6',
+        data: {
+            city: 'London',
+            weather: '',
+            forecast: ''
+        },
+        methods: {
+            getWeather: async function () {
+                response = await fetch("weather/" + this.city)
+                theWeather = await response.json()
+                this.weather = theWeather.weather.main
+            },
+            getForecast: async function () {
+                response = await fetch("forecast/" + this.city)
+                theForecast = await response.json()
+                //3-hour step forecast for 5 days
+                let pack = 'Rain is not forecasted'
+                forecast_size = (theForecast.forecast.list.length)
+                //loop through each steps weather checking for rain
+                for (let i=0; i<forecast_size; i++){
+                    current_forecast = theForecast.forecast.list[i].weather[0].main
+                    if(current_forecast == 'Rain'){
+                        pack = 'Rain is forecasted, pack an umbrella.'
+                    }
+                }
+                this.forecast = pack
+            }
+        }
+    })
+</script>
+
+</html>

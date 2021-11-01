@@ -8,6 +8,9 @@
     {{weather}}
     <button v-on:click="getForecast">Packing</button>
     {{forecast}}
+    <button v-on:click="getTemperature">Temperature</button>
+    {{temperature}}
+    <button v-on:click="getTable">Tabular forecast</button>
 </div>
 <script>
     const API_KEY = "2851461c73782e2d4b65647c123fa135"
@@ -16,13 +19,16 @@
         data: {
             city: 'London',
             weather: '',
-            forecast: ''
+            forecast: '',
+            temperature:''
+            
         },
         methods: {
             getWeather: async function () {
                 response = await fetch("weather/" + this.city)
                 theWeather = await response.json()
                 this.weather = theWeather.weather.main
+                console.log(theWeather)
             },
             getForecast: async function () {
                 response = await fetch("forecast/" + this.city)
@@ -38,8 +44,29 @@
                     }
                 }
                 this.forecast = pack
+            },
+            getTemperature: async function () {
+                response = await fetch("temperature/" + this.city)
+                theTemperature = await response.json()
+                console.log(theTemperature.temperature)
+                //convert to celsius
+                celsiusTemp = theTemperature.temperature-273.15
+                if(celsiusTemp>-10 && celsiusTemp<10){
+                    this.temperature = 'Pack for Cold'
+                }
+                if(celsiusTemp>10 && celsiusTemp<20){
+                    this.temperature = 'Pack for Warm'
+                }
+                if(celsiusTemp>20){
+                    this.temperature = 'Pack for Hot'
+                }
+            },
+            getTable: async function () {
+                response = await fetch("table/" + this.city)
+                theWeather = await response.json()
+                console.log(theWeather)
             }
-        }
+        },
     })
 </script>
 

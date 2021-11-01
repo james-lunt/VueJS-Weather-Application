@@ -11,6 +11,9 @@
     <button v-on:click="getTemperature">Temperature</button>
     {{temperature}}
     <button v-on:click="getTable">Tabular forecast</button>
+    <li v-for="n in rainfall_array">{{ n }}</li>
+    <li v-for="n in temperature_array">{{ n }}</li>
+    <li v-for="n in wind_speed_array">{{ n }}</li>
 </div>
 <script>
     const API_KEY = "2851461c73782e2d4b65647c123fa135"
@@ -20,8 +23,10 @@
             city: 'London',
             weather: '',
             forecast: '',
-            temperature:''
-            
+            temperature:'',
+            rainfall_array: [],
+            temperature_array: [],
+            wind_speed_array: []
         },
         methods: {
             getWeather: async function () {
@@ -36,6 +41,7 @@
                 //3-hour step forecast for 5 days
                 let pack = 'Rain is not forecasted'
                 forecast_size = (theForecast.forecast.list.length)
+
                 //loop through each steps weather checking for rain
                 for (let i=0; i<forecast_size; i++){
                     current_forecast = theForecast.forecast.list[i].weather[0].main
@@ -63,8 +69,51 @@
             },
             getTable: async function () {
                 response = await fetch("table/" + this.city)
-                theWeather = await response.json()
-                console.log(theWeather)
+                theForecast= await response.json()
+                forecast_size = (theForecast.forecast.list.length)
+
+                //date sliced in order to get the date without the time
+                let current_date = current_forecast = theForecast.forecast.list[0].dt_txt.slice(0,10)
+                console.log(current_date)
+                let average_rainfall = 0
+                let average_temperature = 0
+                let average_windspeed = 0
+
+
+                for (let i = 0; i<forecast_size; i++){
+                    date = theForecast.forecast.list[i].dt_txt.slice(0,10)
+                    let intervals = 0
+                    if(date!=current_date){
+                        //set denominator for calculating average based off the amount of intervals per day
+                        if(i<8){
+                            intervals = i
+                        }
+                        else{
+                            intervals = 8
+                        }
+                        //calculate average and push to array
+                        this.rainfall_array.push(average_rainfall/intervals)
+                        this.temperature_array.push(average_temperature/intervals)
+                        this.wind_speed_array.push(average_windspeed/intervals)
+
+                        //reset averages
+                        average_rainfall = 0
+                        average_temperature = 0
+                        average_windspeed = 0
+
+                        //update current date
+                        current_date = date
+                        console.log(current_date)
+                    }
+
+                    //add values for average calculation
+                    if(theForecast.forecast.list[i].weather[0].main == "Rain"){
+                        average_rainfall += theForecast.forecast.list[i].rain["3h"]
+                    }
+                    average_temperature += theForecast.forecast.list[i].main.temp
+                    average_windspeed += theForecast.forecast.list[i].wind.speed
+                }
+
             }
         },
     })

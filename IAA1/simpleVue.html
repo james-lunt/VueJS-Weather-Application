@@ -15,7 +15,7 @@
     <li v-for="n in temperature_array">{{ n }}</li>
     <li v-for="n in wind_speed_array">{{ n }}</li>
     <button v-on:click="getAirPollution">Air Pollution</button>
-    <li v-for="n in humidity_array">{{ n }}</li>
+    {{mask}}
 </div>
 <script>
     const API_KEY = "2851461c73782e2d4b65647c123fa135"
@@ -133,10 +133,10 @@
                 pollution = await response.json()
 
                 //Check the PM2_5 humidity levels for the next 5 days. If it exceeds 10 wear a mask 
-                let mask = "Humidity levels remain below 10. No need to wear a mask."
+                this.mask = "Humidity levels remain below 10. No need to wear a mask."
                 for (let i = 0; i<5; i++){
                     if(pollution[i].components.pm2_5 > 10){
-                        mask = "PM25 Humidity levels exceed 10, wear a mask."
+                        this.mask = "PM25 Humidity levels exceed 10, wear a mask."
                     }
                 }
             }

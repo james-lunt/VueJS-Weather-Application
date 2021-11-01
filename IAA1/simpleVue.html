@@ -14,9 +14,12 @@
     <li v-for="n in rainfall_array">{{ n }}</li>
     <li v-for="n in temperature_array">{{ n }}</li>
     <li v-for="n in wind_speed_array">{{ n }}</li>
+    <button v-on:click="getAirPollution">Air Pollution</button>
+    <li v-for="n in humidity_array">{{ n }}</li>
 </div>
 <script>
     const API_KEY = "2851461c73782e2d4b65647c123fa135"
+    const kelvin_decrement = 273.15 //for conversion from kelvin to celsius
     var app6 = new Vue({
         el: '#app-6',
         data: {
@@ -26,7 +29,10 @@
             temperature:'',
             rainfall_array: [],
             temperature_array: [],
-            wind_speed_array: []
+            wind_speed_array: [],
+            longitude: '',
+            latitude: '',
+            mask: ''
         },
         methods: {
             getWeather: async function () {
@@ -54,9 +60,9 @@
             getTemperature: async function () {
                 response = await fetch("temperature/" + this.city)
                 theTemperature = await response.json()
-                console.log(theTemperature.temperature)
                 //convert to celsius
-                celsiusTemp = theTemperature.temperature-273.15
+                celsiusTemp = theTemperature.temperature-kelvin_decrement
+             
                 if(celsiusTemp>-10 && celsiusTemp<10){
                     this.temperature = 'Pack for Cold'
                 }
@@ -110,10 +116,29 @@
                     if(theForecast.forecast.list[i].weather[0].main == "Rain"){
                         average_rainfall += theForecast.forecast.list[i].rain["3h"]
                     }
-                    average_temperature += theForecast.forecast.list[i].main.temp
+                    average_temperature += (theForecast.forecast.list[i].main.temp - kelvin_decrement)
                     average_windspeed += theForecast.forecast.list[i].wind.speed
                 }
 
+            },
+            getAirPollution: async function () {
+                //get coordinates
+                response = await fetch("coords/" + this.city)
+                coordinates = await response.json()
+                this.longitude = coordinates.coords.lon
+                this.latitude= coordinates.coords.lat
+
+                //get PM2_5 pollution with these coordinates
+                response = await fetch("pollution/" + this.latitude + "/" + this.longitude)
+                pollution = await response.json()
+
+                //Check the PM2_5 humidity levels for the next 5 days. If it exceeds 10 wear a mask 
+                let mask = "Humidity levels remain below 10. No need to wear a mask."
+                for (let i = 0; i<5; i++){
+                    if(pollution[i].components.pm2_5 > 10){
+                        mask = "PM25 Humidity levels exceed 10, wear a mask."
+                    }
+                }
             }
         },
     })

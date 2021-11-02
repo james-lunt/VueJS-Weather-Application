@@ -45,9 +45,6 @@ async function getCoordinates(req,res){
 async function getAirPollution(req,res){
     let response = await axios.get(`http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat=${req.params.lat}&lon=${req.params.lon}&appid=${API_KEY}`)
     pollution = response.data.list
-    //console.log(pollution)
-    //console.log("hello")
-    //console.log(pollution[0].components.pm2_5)
     res.json(pollution)
 }
 

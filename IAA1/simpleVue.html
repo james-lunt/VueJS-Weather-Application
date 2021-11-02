@@ -3,6 +3,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
 <div id="app-6">
+    James Lunt
+    18323467
+    <br>
     <input v-model="city">
     <button v-on:click="getWeather">Todays Weather</button>
     <button v-on:click="getForecast">Rain Forecast</button>
@@ -10,9 +13,46 @@
     <button v-on:click="getTable">Tabular forecast</button>
     <button v-on:click="getAirPollution">Air Pollution</button>
     <br>
-    <li v-for="n in rainfall_array">{{ n }}</li>
-    <li v-for="n in temperature_array">{{ n }}</li>
-    <li v-for="n in wind_speed_array">{{ n }}</li>
+    <table>
+        <caption>{{table_title}}</caption>
+        <tr>
+            <td></td>
+            <th scope="col">{{table_headers[0]}}</th>
+            <th scope="col">{{table_headers[1]}}</th>
+            <th scope="col">{{table_headers[2]}}</th>
+        </tr>
+        <tr>
+            <th scope="row">{{date_array[0]}}</th>
+            <td>{{rainfall_array[0]}}</td>
+            <td>{{temperature_array[0]}}</td>
+            <td>{{wind_speed_array[0]}}</td>
+        </tr>
+        <tr>
+            <th scope="row">{{date_array[1]}}</th>
+            <td>{{rainfall_array[1]}}</td>
+            <td>{{temperature_array[1]}}</td>
+            <td>{{wind_speed_array[1]}}</td>
+        </tr>
+        <tr>
+            <th scope="row">{{date_array[2]}}</th>
+            <td>{{rainfall_array[2]}}</td>
+            <td>{{temperature_array[2]}}</td>
+            <td>{{wind_speed_array[2]}}</td>
+        </tr>
+        <tr>
+            <th scope="row">{{date_array[3]}}</th>
+            <td>{{rainfall_array[3]}}</td>
+            <td>{{temperature_array[3]}}</td>
+            <td>{{wind_speed_array[3]}}</td>
+        </tr>
+        <tr>
+            <th scope="row">{{date_array[4]}}</th>
+            <td>{{rainfall_array[4]}}</td>
+            <td>{{temperature_array[4]}}</td>
+            <td>{{wind_speed_array[4]}}</td>
+        </tr>
+    </table>
+
     <br>
     {{weather}}
     <br>
@@ -31,13 +71,16 @@
             city: 'London',
             weather: '',
             forecast: '',
-            temperature:'',
+            temperature: '',
             rainfall_array: [],
             temperature_array: [],
             wind_speed_array: [],
+            table_title: '',
+            table_headers: [],
+            date_array: [],
             longitude: '',
             latitude: '',
-            mask: ''
+            mask: '',
         },
         methods: {
             getWeather: async function () {
@@ -54,9 +97,9 @@
                 forecast_size = (theForecast.forecast.list.length)
 
                 //loop through each steps weather checking for rain
-                for (let i=0; i<forecast_size; i++){
+                for (let i = 0; i < forecast_size; i++) {
                     current_forecast = theForecast.forecast.list[i].weather[0].main
-                    if(current_forecast == 'Rain'){
+                    if (current_forecast == 'Rain') {
                         pack = 'Rain is forecasted, pack an umbrella.'
                     }
                 }
@@ -66,16 +109,16 @@
                 response = await fetch("temperature/" + this.city)
                 theTemperature = await response.json()
                 //convert to celsius
-                celsiusTemp = theTemperature.temperature-kelvin_decrement
-             
-                if(celsiusTemp>-10 && celsiusTemp<10){
-                    this.temperature = 'Pack for Cold'
+                celsiusTemp = theTemperature.temperature - kelvin_decrement
+
+                if (celsiusTemp > -10 && celsiusTemp < 10) {
+                    this.temperature = 'Temperature is ' + celsiusTemp + '°C Pack for Cold'
                 }
-                if(celsiusTemp>10 && celsiusTemp<20){
-                    this.temperature = 'Pack for Warm'
+                if (celsiusTemp > 10 && celsiusTemp < 20) {
+                    this.temperature = 'Temperature is ' + celsiusTemp + '°C Pack for Warm'
                 }
-                if(celsiusTemp>20){
-                    this.temperature = 'Pack for Hot'
+                if (celsiusTemp > 20) {
+                    this.temperature = 'Temperature is ' + celsiusTemp + '°C Pack for Hot'
                 }
             },
             getTable: async function () {
@@ -83,34 +126,41 @@
                 this.rainfall_array = []
                 this.temperature_array = []
                 this.wind_speed_array = []
+                this.date_array = []
 
                 response = await fetch("table/" + this.city)
-                theForecast= await response.json()
+                theForecast = await response.json()
                 forecast_size = (theForecast.forecast.list.length)
 
                 //date sliced in order to get the date without the time
-                let current_date = current_forecast = theForecast.forecast.list[0].dt_txt.slice(0,10)
-                console.log(current_date)
+                let current_date = current_forecast = theForecast.forecast.list[0].dt_txt.slice(0, 10)
+                this.date_array.push(current_date)
                 let average_rainfall = 0
                 let average_temperature = 0
                 let average_windspeed = 0
+                let remainder = 0
+                let index = 0
 
 
-                for (let i = 0; i<forecast_size; i++){
-                    date = theForecast.forecast.list[i].dt_txt.slice(0,10)
+                for (index = 0; index < forecast_size; index++) {
+                    date = theForecast.forecast.list[index].dt_txt.slice(0, 10)
                     let intervals = 0
-                    if(date!=current_date){
+                    if (date != current_date) {
                         //set denominator for calculating average based off the amount of intervals per day
-                        if(i<8){
-                            intervals = i
+                        if (index < 8) {
+                            intervals = index
                         }
-                        else{
+                        else {
                             intervals = 8
                         }
+                        //set a remainder for the last day which probably won't be calculated with a size 8 denominator
+                        if (index > (40 - 8)) {
+                            remainder = 40 - index
+                        }
                         //calculate average and push to array
-                        this.rainfall_array.push(average_rainfall/intervals)
-                        this.temperature_array.push(average_temperature/intervals)
-                        this.wind_speed_array.push(average_windspeed/intervals)
+                        this.rainfall_array.push(average_rainfall / intervals)
+                        this.temperature_array.push(average_temperature / intervals)
+                        this.wind_speed_array.push(average_windspeed / intervals)
 
                         //reset averages
                         average_rainfall = 0
@@ -119,16 +169,33 @@
 
                         //update current date
                         current_date = date
-                        console.log(current_date)
+                        this.date_array.push(current_date)
                     }
 
                     //add values for average calculation
-                    if(theForecast.forecast.list[i].weather[0].main == "Rain"){
-                        average_rainfall += theForecast.forecast.list[i].rain["3h"]
+                    if (theForecast.forecast.list[index].weather[0].main == "Rain") {
+                        average_rainfall += theForecast.forecast.list[index].rain["3h"]
                     }
-                    average_temperature += (theForecast.forecast.list[i].main.temp - kelvin_decrement)
-                    average_windspeed += theForecast.forecast.list[i].wind.speed
+                    average_temperature += (theForecast.forecast.list[index].main.temp - kelvin_decrement)
+                    average_windspeed += theForecast.forecast.list[index].wind.speed
                 }
+                //calculate remainder averages and push
+                if (remainder != 0) {
+                    for (let i = index; i < remainder; i++) {
+                        if (theForecast.forecast.list[i].weather[0].main == "Rain") {
+                            average_rainfall += theForecast.forecast.list[i].rain["3h"]
+                        }
+                        average_temperature += (theForecast.forecast.list[i].main.temp - kelvin_decrement)
+                        average_windspeed += theForecast.forecast.list[i].wind.speed
+                    }
+                    this.rainfall_array.push(average_rainfall / remainder)
+                    this.temperature_array.push(average_temperature / remainder)
+                    this.wind_speed_array.push(average_windspeed / remainder)
+                }
+                
+                //set table headers and title
+                this.table_title = "Forecast for the next 5 days"
+                this.table_headers = ["Rainfall", "Temperature","Wind Speed"]
 
             },
             getAirPollution: async function () {
@@ -136,7 +203,7 @@
                 response = await fetch("coords/" + this.city)
                 coordinates = await response.json()
                 this.longitude = coordinates.coords.lon
-                this.latitude= coordinates.coords.lat
+                this.latitude = coordinates.coords.lat
 
                 //get PM2_5 pollution with these coordinates
                 response = await fetch("pollution/" + this.latitude + "/" + this.longitude)
@@ -144,8 +211,8 @@
 
                 //Check the PM2_5 humidity levels for the next 5 days. If it exceeds 10 wear a mask 
                 this.mask = "Humidity levels remain below 10. No need to wear a mask."
-                for (let i = 0; i<5; i++){
-                    if(pollution[i].components.pm2_5 > 10){
+                for (let i = 0; i < 5; i++) {
+                    if (pollution[i].components.pm2_5 > 10) {
                         this.mask = "PM25 Humidity levels exceed 10, wear a mask."
                     }
                 }
